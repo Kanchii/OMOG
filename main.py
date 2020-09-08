@@ -31,29 +31,42 @@ control_points = [
     Point(525, 300),
     Point(575, 200),
     Point(625, 250),
-    Point(650, 100),
     Point(650, 100)
+]
+
+control_points_2 = [
+    Point(200, 300),
+    Point(300, 150),
+    Point(400, 300),
+    Point(500, 150),
+    Point(600, 300)
+]
+
+weights_2 = [
+    1.0,
+    1.0,
+    0.0,
+    1.0,
+    1.0
 ]
 
 weights = [
     1.0,
     1.0,
     1.0,
-    2.0,
     1.0,
     1.0,
-    2.0,
+    1.0,
     1.0
 ]
 
-nurbsCurve = NURBSCurve(2, control_points, weights)
-
-hermiteCurve = HermiteCurve(Point(10, 600), Point(200, 300),
-                            Point(-600, -300), Point(500, -200))
+nurbsCurve = NURBSCurve(4, control_points, weights)
+hermiteCurve = HermiteCurve(Point(10, 300), Point(200, 300),
+                            Point(0, -300), Point(500, -200))
 
 
 jointCurveHandler = JointCurveHandler(nurbsCurve, hermiteCurve)
-jointCurveHandler.draw(pygame, screen, 2, [Colors.RED, Colors.GREEN], 1000)
+jointCurveHandler.Draw(pygame, screen, 2, [Colors.RED, Colors.GREEN], 1000, True)
 
 pygame.display.flip()
 running = True

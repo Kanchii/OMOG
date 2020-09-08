@@ -30,12 +30,12 @@ class JointCurveHandler:
     def C1(self):
         self.G1()
 
-    def draw(self, pygame, screen, thickness, colors: [Colors], number_points):
+    def Draw(self, pygame, screen, thickness, colors: [Colors], number_points, debug = False):
         self.C1()
         
         self.nurbsCurve.GenerateCurve(number_points)
         self.hermiteCurve.GenerateCurve(number_points)
 
-        self.nurbsCurve.Draw(pygame, screen, thickness, colors[0], True)
+        self.nurbsCurve.Draw(pygame, screen, thickness, colors[0], debug)
         self.hermiteCurve.Draw(pygame, screen, thickness, colors[1])
         
