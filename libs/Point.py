@@ -1,6 +1,8 @@
 from .Line import *
 from .Common import Colors
 
+import math
+
 class Point:
     def __init__(self, x, y):
         self.x = x
@@ -14,6 +16,19 @@ class Point:
 
     def sum(self, o):
         return Point(self.x + o.x, self.y + o.y)
+
+    def vet(self, o):
+        return Point(o.x - self.x, o.y - self.y)
+    
+    def norm(self):
+        return math.sqrt(self.x ** 2 + self.y ** 2)
+    
+    def dot_product(self, o):
+        return (self.x * o.x) + (self.y * o.y)
+    
+    def rotate(self, angle):
+        return Point(self.x * math.cos(angle) - self.y * math.sin(angle),
+                        self.x * math.sin(angle) + self.y * math.cos(angle))
     
     def div(self, k: float):
         if(k == 0):
@@ -32,6 +47,10 @@ class PointCollection:
     
     def add(self, point: Point):
         self.points.append(point)
+
+    def addRange(self, points):
+        for point in points.points:
+            self.points.append(point)
 
     def interpolate(self, thickness = 1) -> LineCollection:
         self.lineCollection = LineCollection([])

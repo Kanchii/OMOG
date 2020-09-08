@@ -5,7 +5,9 @@ from libs.XYAxes import XYAxes
 from libs.Common import ScreenDimensions, Colors
 from libs.Point import Point, PointCollection
 from libs.Curve import Curve
-from libs.ComplexCurves import BSplineCurve, HermiteCurve, NURBSCurve
+from libs.ComplexCurves import HermiteCurve, NURBSCurve
+
+from libs.JointCurveHandler import JointCurveHandler
 
 background_colour = Colors.WHITE
 
@@ -33,59 +35,25 @@ control_points = [
     Point(650, 100)
 ]
 
-control_points_2 = [x.sum(Point(-300, 250)) for x in control_points]
-
-control_points_3 = [
-    Point(center.x, center.y),
-    Point(center.x + 100, center.y),
-    Point(center.x + 100, center.y - 200),
-    Point(center.x, center.y - 200),
-    Point(center.x - 100, center.y - 200),
-    Point(center.x - 100, center.y),
-    Point(center.x, center.y),
-    Point(center.x, center.y)
-]
-
-weights_2 = [
-    1, 0.5, 0.5, 1, 0.5, 0.5, 1, 1
-]
-
 weights = [
     1.0,
     1.0,
     1.0,
-    5.0,
+    2.0,
     1.0,
     1.0,
     2.0,
     1.0
 ]
 
-# nurbsCurve = NURBSCurve(3, control_points_3, weights_2)
-# nurbsCurve.draw(pygame, screen, 500, 2)
-
-# for p in control_points_3:
-#     p.draw(pygame, screen, 5, Colors.BLUE)
-
 nurbsCurve = NURBSCurve(2, control_points, weights)
 
-nurbsCurve.draw(pygame, screen, 500, 2)
+hermiteCurve = HermiteCurve(Point(10, 600), Point(200, 300),
+                            Point(-600, -300), Point(500, -200))
 
-bSplineCurve = BSplineCurve(2, control_points_2)
 
-bSplineCurve.draw(pygame, screen, 500, 2)
-
-for p in control_points:
-    p.draw(pygame, screen, 5, Colors.BLUE)
-
-for p in control_points_2:
-    p.draw(pygame, screen, 5, Colors.BLUE)
-
-# hermiteCurve = HermiteCurve(Point(50, 50), Point(400, 250),
-#                             Point(600, -300), Point(25, -200), 1000)
-
-# hermiteCurve.draw(pygame, screen, 2)
-
+jointCurveHandler = JointCurveHandler(nurbsCurve, hermiteCurve)
+jointCurveHandler.draw(pygame, screen, 2, [Colors.RED, Colors.GREEN], 1000)
 
 pygame.display.flip()
 running = True

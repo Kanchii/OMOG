@@ -3,14 +3,18 @@ from .Curve import Curve
 from .Common import Colors
 import numpy as np
 
-class BSplineCurve:
-    def __init__(self, degree: int, control_points: [Point]):
+class NURBSCurve:
+    def __init__(self, degree: int, control_points: [Point], weights: [float] = None):
         self.degree = degree
         self.number_of_points = degree + 1
         self.control_points = control_points
 
-        self.knots = self.CalculateKnots()        
+        self.knots = self.CalculateKnots()
 
+        self.points = PointCollection([])
+
+        self.weights = weights
+    
     def CalculateKnots(self):
         knots = []
         for i in range(len(self.control_points) + self.number_of_points + 1):
@@ -45,75 +49,74 @@ class BSplineCurve:
 
         return first + second
     
-    def GenerateSegment(self, s, number_points, weights = None):
+    def GenerateSegment(self, s, number_points):
         points_list = PointCollection([])
         for u in np.arange(s, s + 1 + (1.0)/float(number_points), 1.0 / float(number_points)):
             p = Point(0, 0)
             u = float(u)
-            nurbs_weight = 1 if weights == None else 0
+            nurbs_weight = 1 if self.weights == None else 0
             for i in range(self.number_of_points):
                 v = self.CalcuteBasisFunction(u, s + i, self.number_of_points)
-                if(weights != None):
-                    v *= weights[s+i]
+                if(self.weights != None):
+                    v *= self.weights[s+i]
                     nurbs_weight += v
                 pv = self.control_points[s+i].mult(v)
                 p = p.sum(pv)
             if(nurbs_weight == 0):
                 continue
             points_list.add(p.div(nurbs_weight))
-        return points_list
-    
-    def draw(self, pygame, screen, number_points, thickness, color = Colors.RED):
-        for i in range(0, len(self.control_points) - self.number_of_points + 1):
-            segment = self.GenerateSegment(i, number_points)
-            segment_interpolate = segment.interpolate(thickness)
-            segment_interpolate.draw(pygame, screen, color)
+        self.points.addRange(points_list)
 
-class NURBSCurve:
-    def __init__(self, degree: int, control_points: [Point], weights: [float]):
-        self.bSplineCurve = BSplineCurve(degree, control_points)
-        self.weights = weights
-    
-    def draw(self, pygame, screen, number_points, thickness, color = Colors.RED):
-        for i in range(0, len(self.bSplineCurve.control_points) - self.bSplineCurve.number_of_points + 1):
-            segment = self.bSplineCurve.GenerateSegment(i, number_points, self.weights)
-            segment_interpolate = segment.interpolate(thickness)
-            segment_interpolate.draw(pygame, screen, color)
+    def GenerateCurve(self, number_points):
+        self.points = PointCollection([])
+        for i in range(0, len(self.control_points) - self.number_of_points + 1):
+            self.GenerateSegment(i, number_points)
+
+    def Draw(self, pygame, screen, thickness, color = Colors.RED, debug = False):
+        if(debug):
+            for p, w in zip(self.control_points, self.weights):
+                p.draw(pygame, screen, int(w)*2, Colors.BLUE)
+
+        self.points.interpolate(thickness).draw(pygame, screen, color)
 
 class HermiteCurve:
-    def __init__(self, p0: Point, p1: Point, v0: Point, v1: Point, total_points: int):
-        self.p0 = p0
-        self.p1 = p1
-        self.v0 = v0
-        self.v1 = v1
-        self.total_points = total_points
+    def __init__(self, p0: Point, p1: Point, v0: Point, v1: Point):
+        self.p_start = p0
+        self.p_end = p1
+        self.v_start = v0
+        self.v_end = v1
 
-        self.generateCurve(self.total_points)
-    def generateCurve(self, total_points):
+        self.points = PointCollection([])
+    
+    def BuildCurve(self, number_points):
         pointCollection = PointCollection([])
-        unit = 1 / float(total_points)
+        unit = 1 / float(number_points)
         for t in np.arange(0.0, 1.0 + unit, unit):
-            pointCollection.add(self.resolve(t))
+            pointCollection.add(self.Resolve(t))
         
-        self.curve = Curve(pointCollection)
+        self.points.addRange(pointCollection)
 
-    def draw(self, pygame, screen, thickness, color = Colors.GREEN):
-        self.curve.draw(pygame, screen, 2, color)
+    def GenerateCurve(self, number_points):
+        self.points = PointCollection([])
+        self.BuildCurve(number_points)
 
-    def resolve(self, t) -> Point:
-        x = self.resolve_x(t)
-        y = self.resolve_y(t)
+    def Draw(self, pygame, screen, thickness = 2, color = Colors.GREEN):
+        self.points.interpolate(thickness).draw(pygame, screen, color)
+
+    def Resolve(self, t) -> Point:
+        x = self.Resolve_x(t)
+        y = self.Resolve_y(t)
 
         return Point(x, y)
 
-    def resolve_x(self, t):
-        return self.p0.x * (2 * t ** 3 - 3 * t ** 2 + 1) +\
-                self.p1.x * (-2 * t ** 3 + 3 * t ** 2) + \
-                self.v0.x * (t ** 3 - 2 * t ** 2 + t) +\
-                self.v1.x * (t ** 3 - t ** 2)
+    def Resolve_x(self, t):
+        return self.p_start.x * (2 * t ** 3 - 3 * t ** 2 + 1) +\
+                self.p_end.x * (-2 * t ** 3 + 3 * t ** 2) + \
+                self.v_start.x * (t ** 3 - 2 * t ** 2 + t) +\
+                self.v_end.x * (t ** 3 - t ** 2)
     
-    def resolve_y(self, t):
-        return self.p0.y * (2 * t ** 3 - 3 * t ** 2 + 1) +\
-                self.p1.y * (-2 * t ** 3 + 3 * t ** 2) + \
-                self.v0.y * (t ** 3 - 2 * t ** 2 + t) +\
-                self.v1.y * (t ** 3 - t ** 2)
+    def Resolve_y(self, t):
+        return self.p_start.y * (2 * t ** 3 - 3 * t ** 2 + 1) +\
+                self.p_end.y * (-2 * t ** 3 + 3 * t ** 2) + \
+                self.v_start.y * (t ** 3 - 2 * t ** 2 + t) +\
+                self.v_end.y * (t ** 3 - t ** 2)
