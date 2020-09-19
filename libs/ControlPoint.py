@@ -25,17 +25,18 @@ class ControlPointHandler:
         for control_point in self.control_points:
             control_point.pos = control_point.pos.sum(deslocamento)
 
-    def MouseClick(self, x, y):
-        if(self.selected == -1):
-            for idx, control_point in enumerate(self.control_points):
-                if(control_point.IsPressed(x, y)):
-                    self.selected = idx
-                    break
-        else:
-            if(not self.control_points[self.selected].IsPressed(x, y)):
-                self.selected = -1
-                return
-            self.control_points[self.selected].pos = Point(x, y)
+    def MouseClick(self, x, y, idx):
+        self.control_points[idx].pos = Point(x, y)
+        # if(self.selected == -1):
+        #     for idx, control_point in enumerate(self.control_points):
+        #         if(control_point.IsPressed(x, y)):
+        #             self.selected = idx
+        #             break
+        # else:
+        #     if(not self.control_points[self.selected].IsPressed(x, y)):
+        #         self.selected = -1
+        #         return
+        #     self.control_points[self.selected].pos = Point(x, y)
             
 
 class ControlPoint:

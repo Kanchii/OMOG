@@ -17,6 +17,8 @@ class JointCurveHandler:
         # Calculando o deslocamento que a curva de Hermite terá q fazer
         desloc = hermite_last_point.vet(nurbs_last_point)
 
+        print(desloc)
+
         # Movendo a curva de Hermite
         self.hermiteCurve.controlPointHandler.desloc(desloc)
 
@@ -41,7 +43,7 @@ class JointCurveHandler:
         self.G1()
 
     def Draw(self, pygame, screen, thickness, colors: [Colors], number_points):
-        self.C1()
+        self.G0_C0()
         
         self.nurbsCurve.Draw(pygame, screen, thickness, colors[0], number_points)
         self.hermiteCurve.Draw(pygame, screen, thickness, colors[1], number_points)
