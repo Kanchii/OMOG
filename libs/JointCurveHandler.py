@@ -1,6 +1,7 @@
 from .ComplexCurves import NURBSCurve, HermiteCurve
 from .Common import Colors
 from .Point import Point
+from .ControlPoint import *
 
 import math
 
@@ -10,32 +11,38 @@ class JointCurveHandler:
         self.hermiteCurve = hermiteCurve
     
     def G0_C0(self):
-        hermite_last_point = self.hermiteCurve.p_end
-        nurbs_last_point = self.nurbsCurve.control_points[0]
+        hermite_last_point = self.hermiteCurve.controlPointHandler.getValue(2)
+        nurbs_last_point = self.nurbsCurve.controlPointHandler.getValue(0)
 
         # Calculando o deslocamento que a curva de Hermite terá q fazer
-        desloc = Point(nurbs_last_point.x - hermite_last_point.x, nurbs_last_point.y - hermite_last_point.y)
+        desloc = hermite_last_point.vet(nurbs_last_point)
 
         # Movendo a curva de Hermite
-        self.hermiteCurve.p_start = self.hermiteCurve.p_start.sum(desloc)
-        self.hermiteCurve.p_end = self.hermiteCurve.p_end.sum(desloc)
+        self.hermiteCurve.controlPointHandler.desloc(desloc)
 
     def G1(self):
         self.G0_C0()
-        # Pegando a reta tangente do começo da curva de NURBS
-        nurbs_tangent = self.nurbsCurve.control_points[0].vet(self.nurbsCurve.control_points[1])
 
-        self.hermiteCurve.v_end = nurbs_tangent
+        hermite_vector = self.hermiteCurve.controlPointHandler.getValue(3).vet(self.hermiteCurve.controlPointHandler.getValue(2))
+
+        nurbs_second_control_point = self.nurbsCurve.controlPointHandler.getValue(0).sum(hermite_vector)
+
+        # self.hermiteCurve.v_end = nurbs_tangent
+        control_point_ant = self.nurbsCurve.controlPointHandler.control_points[1]
+        # print(control_point_ant, nurbs_second_control_point, hermite_vector)
+        self.nurbsCurve.controlPointHandler.control_points[1] = ControlPoint(nurbs_second_control_point.x,
+                        nurbs_second_control_point.y,                        
+                        control_point_ant.radius,
+                        control_point_ant.number,
+                        control_point_ant.weight,
+                        control_point_ant.terminal)  
 
     def C1(self):
         self.G1()
 
-    def Draw(self, pygame, screen, thickness, colors: [Colors], number_points, debug = False):
+    def Draw(self, pygame, screen, thickness, colors: [Colors], number_points):
         self.C1()
         
-        self.nurbsCurve.GenerateCurve(number_points)
-        self.hermiteCurve.GenerateCurve(number_points)
-
-        self.nurbsCurve.Draw(pygame, screen, thickness, colors[0], debug)
-        self.hermiteCurve.Draw(pygame, screen, thickness, colors[1])
+        self.nurbsCurve.Draw(pygame, screen, thickness, colors[0], number_points)
+        self.hermiteCurve.Draw(pygame, screen, thickness, colors[1], number_points)
         

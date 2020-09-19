@@ -1,19 +1,21 @@
 from .Point import Point, PointCollection
 from .Curve import Curve
 from .Common import Colors
+from .ControlPoint import *
 import numpy as np
 
 class NURBSCurve:
-    def __init__(self, degree: int, control_points: [Point], weights: [float] = None):
+    def __init__(self, degree: int, controlPointHandler: [ControlPointHandler]):
         self.degree = degree
         self.number_of_points = degree + 1
-        self.control_points = control_points
+        self.controlPointHandler = controlPointHandler
+        # self.control_points = control_points
 
-        self.knots = self.CalculateKnots()
+        # self.knots = self.CalculateKnots()
 
         self.points = PointCollection([])
 
-        self.weights = weights
+        # self.weights = weights
     
     def CalculateKnots(self):
         knots = []
@@ -24,7 +26,6 @@ class NURBSCurve:
                 knots.append(i - self.number_of_points + 1)
             else:
                 knots.append(len(self.control_points) - self.number_of_points + 2)
-        print("knots", knots)
         return [float(x) for x in knots]
 
     def CalcuteBasisFunction(self, u, i, k):
@@ -54,7 +55,6 @@ class NURBSCurve:
     def GenerateSegment(self, s, number_points):
         points_list = PointCollection([])
         unit = 1.0/float(number_points)
-        print(s, self.number_of_points)
         for u in np.arange(s, s + 1 + unit, unit):
             p = Point(0, 0)
             u = float(u)
@@ -72,25 +72,30 @@ class NURBSCurve:
         self.points.addRange(points_list)
 
     def GenerateCurve(self, number_points):
+        self.control_points = []
+        self.weights = []
+        for i in range(len(self.controlPointHandler.control_points)):
+            self.control_points.append(self.controlPointHandler.getValue(i))
+            self.weights.append(self.controlPointHandler.getWeight(i))
+
+        self.knots = self.CalculateKnots()
+
         self.points = PointCollection([])
         for i in range(0, len(self.control_points) - self.number_of_points + 2):
             self.GenerateSegment(i, number_points)
 
-    def Draw(self, pygame, screen, thickness, color = Colors.RED, debug = False):
-        if(debug):
-            for p, w in zip(self.control_points, self.weights):
-                p.draw(pygame, screen, int(w)*2, Colors.BLUE)
+    def Draw(self, pygame, screen, thickness, color = Colors.RED, number_points = 1000):
+        self.GenerateCurve(number_points)
+
+        # for p in zip(self.control_points[1:], self.weights[1:]):
+        #     p.draw(pygame, screen, int(w)*2, Colors.BLUE)
+        self.controlPointHandler.draw(pygame, screen)
 
         self.points.interpolate(thickness).draw(pygame, screen, color)
 
 class HermiteCurve:
-    def __init__(self, p0: Point, p1: Point, v0: Point, v1: Point):
-        self.p_start = p0
-        self.p_end = p1
-        self.v_start = v0
-        self.v_end = v1
-
-        self.points = PointCollection([])
+    def __init__(self, controlPointHandler):
+        self.controlPointHandler = controlPointHandler
     
     def BuildCurve(self, number_points):
         pointCollection = PointCollection([])
@@ -101,10 +106,18 @@ class HermiteCurve:
         self.points.addRange(pointCollection)
 
     def GenerateCurve(self, number_points):
+        self.p_start = self.controlPointHandler.getValue(0)
+        self.v_start = self.controlPointHandler.getValue(1).vet(self.p_start)
+        self.p_end = self.controlPointHandler.getValue(2)
+        self.v_end = self.controlPointHandler.getValue(3).vet(self.p_end)
+
         self.points = PointCollection([])
         self.BuildCurve(number_points)
 
-    def Draw(self, pygame, screen, thickness = 2, color = Colors.GREEN):
+    def Draw(self, pygame, screen, thickness = 2, color = Colors.GREEN, number_points = 1000):
+        self.GenerateCurve(number_points)
+
+        self.controlPointHandler.draw(pygame, screen)
         self.points.interpolate(thickness).draw(pygame, screen, color)
 
     def Resolve(self, t) -> Point:

@@ -9,6 +9,9 @@ from libs.ComplexCurves import HermiteCurve, NURBSCurve
 
 from libs.JointCurveHandler import JointCurveHandler
 
+from libs.Button import Button
+from libs.ControlPoint import ControlPointHandler, ControlPoint
+
 background_colour = Colors.WHITE
 
 (width, height) = (ScreenDimensions.WIDTH, ScreenDimensions.HEIGH)
@@ -21,52 +24,30 @@ screen.fill(background_colour)
 
 center = Point(ScreenDimensions.WIDTH // 2, ScreenDimensions.HEIGH // 2)
 
-# xyAxes = XYAxes(center.x, center.y, 5)
-# xyAxes.draw(pygame, screen)
+ControlPointHandlerNurbs = ControlPointHandler(
+    [
+        ControlPoint(400, 250, 8, 1, 1.0, terminal=True),
+        ControlPoint(425, 50, 4, 2, 1.0),
+        ControlPoint(475, 50, 4, 3, 1.0),
+        ControlPoint(525, 300, 4, 4, 0.0),
+        ControlPoint(575, 200, 4, 5, 1.0),
+        ControlPoint(625, 250, 4, 6, 1.0),
+        ControlPoint(650, 100, 8, 7, 2.0, terminal=True)
+    ]
+)
 
-control_points = [
-    Point(400, 250),
-    Point(425, 50),
-    Point(475, 50),
-    Point(525, 300),
-    Point(575, 200),
-    Point(625, 250),
-    Point(650, 100)
-]
+nurbsCurve = NURBSCurve(4, ControlPointHandlerNurbs)
 
-control_points_2 = [
-    Point(200, 300),
-    Point(300, 150),
-    Point(400, 300),
-    Point(500, 150),
-    Point(600, 300)
-]
 
-weights_2 = [
-    1.0,
-    1.0,
-    0.0,
-    1.0,
-    1.0
-]
 
-weights = [
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0
-]
-
-nurbsCurve = NURBSCurve(4, control_points, weights)
-hermiteCurve = HermiteCurve(Point(10, 300), Point(200, 300),
-                            Point(0, -300), Point(500, -200))
-
+controlPointHandlerHermite = ControlPointHandler([ControlPoint(300, 300, 8, 1, terminal=True, color=Colors.RED),
+                                            ControlPoint(300, 150, 4, 2, color=Colors.GREEN),
+                                            ControlPoint(200, 300, 8, 3, terminal=True, color=Colors.BLACK),
+                                            ControlPoint(100, 350, 4, 4, color=Colors.GRAY)])
+hermiteCurve = HermiteCurve(controlPointHandlerHermite)
 
 jointCurveHandler = JointCurveHandler(nurbsCurve, hermiteCurve)
-jointCurveHandler.Draw(pygame, screen, 2, [Colors.RED, Colors.GREEN], 1000, True)
+# jointCurveHandler.Draw(pygame, screen, 2, [Colors.RED, Colors.GREEN], 300)
 
 pygame.display.flip()
 running = True
@@ -75,6 +56,21 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+    if(pygame.mouse.get_pressed()[0]):
+        mouse_pos = pygame.mouse.get_pos()
+
+        hermiteCurve.controlPointHandler.MouseClick(mouse_pos[0], mouse_pos[1])
+        nurbsCurve.controlPointHandler.MouseClick(mouse_pos[0], mouse_pos[1])
+
+    
+    screen.fill(Colors.WHITE)
+
+    xyAxes = XYAxes(center.x, center.y, 5)
+    xyAxes.draw(pygame, screen)
+
+    # hermiteCurve.GenerateCurve(300)
+    jointCurveHandler.Draw(pygame, screen, 2, [Colors.RED, Colors.GREEN], 100)
 
     # update the screen
     pygame.display.update()
