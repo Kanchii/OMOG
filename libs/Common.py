@@ -5,6 +5,7 @@ class Colors:
     GRAY = (125, 125, 125)
     GREEN = (0, 255, 0)
     BLUE = (0, 0, 255)
+    PURPLE = (128, 0, 128)
 
 class ScreenDimensions:
     WIDTH = 800

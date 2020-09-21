@@ -26,24 +26,26 @@ center = Point(ScreenDimensions.WIDTH // 2, ScreenDimensions.HEIGH // 2)
 
 ControlPointHandlerNurbs = ControlPointHandler(
     [
-        ControlPoint(400, 250, 8, 1, 1.0, terminal=True),
+        ControlPoint(400, 250, 2, 1, 1.0, terminal=True),
         ControlPoint(425, 50, 4, 2, 1.0),
         ControlPoint(475, 50, 4, 3, 1.0),
         ControlPoint(525, 300, 4, 4, 2.0),
         ControlPoint(575, 200, 4, 5, 1.0),
         ControlPoint(625, 250, 4, 6, 1.0),
-        ControlPoint(650, 100, 8, 7, 2.0, terminal=True)
+        ControlPoint(650, 100, 2, 7, 2.0, terminal=True)
     ]
 )
 nurbsCurve = NURBSCurve(4, ControlPointHandlerNurbs)
 
+nurbsColor = Colors.RED
 
-
-controlPointHandlerHermite = ControlPointHandler([ControlPoint(300, 300, 8, 1, terminal=True, color=Colors.RED),
-                                            ControlPoint(300, 150, 4, 2, color=Colors.GREEN),
-                                            ControlPoint(200, 300, 8, 3, terminal=True, color=Colors.BLACK),
+controlPointHandlerHermite = ControlPointHandler([ControlPoint(300, 300, 2, 1, terminal=True, color=Colors.RED),
+                                            ControlPoint(300, 150, 4, 2, color=Colors.BLACK),
+                                            ControlPoint(200, 300, 2, 3, terminal=True, color=Colors.RED),
                                             ControlPoint(100, 350, 4, 4, color=Colors.GRAY)])
 hermiteCurve = HermiteCurve(controlPointHandlerHermite)
+
+hermiteColor = Colors.GRAY
 
 jointCurveHandler = JointCurveHandler(nurbsCurve, hermiteCurve)
 
@@ -53,6 +55,12 @@ running = True
 curve_selected = 0
 dot_select = 0
 
+screen.fill(Colors.WHITE)
+
+total_points = 300
+
+jointCurveHandler.Draw(pygame, screen, 2, [nurbsColor, hermiteColor], total_points)
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -60,8 +68,14 @@ while running:
         if event.type == pygame.KEYDOWN:
             if(event.key == pygame.K_DOWN):
                 curve_selected = 0
+                dot_select = 0
             elif(event.key == pygame.K_UP):
                 curve_selected = 1
+                dot_select = 0
+            elif(event.key == pygame.K_F1):
+                jointCurveHandler.G0_C0()
+            elif(event.key == pygame.K_F2):
+                jointCurveHandler.C1()
             else:
                 if(event.key == pygame.K_0):
                     dot_select = 0
@@ -83,6 +97,17 @@ while running:
                     dot_select = 8
                 elif(event.key == pygame.K_9):
                     dot_select = 9
+            
+            if(curve_selected == 0):
+                hermiteCurve.controlPointHandler.DotSelected(dot_select)
+                nurbsCurve.controlPointHandler.DotSelected(None)
+            else:
+                nurbsCurve.controlPointHandler.DotSelected(dot_select)
+                hermiteCurve.controlPointHandler.DotSelected(None)
+            
+            screen.fill(Colors.WHITE)
+
+            jointCurveHandler.Draw(pygame, screen, 2, [nurbsColor, hermiteColor], total_points)
 
     if(pygame.mouse.get_pressed()[0]):
         mouse_pos = pygame.mouse.get_pos()
@@ -91,11 +116,10 @@ while running:
             hermiteCurve.controlPointHandler.MouseClick(mouse_pos[0], mouse_pos[1], dot_select)
         else:
             nurbsCurve.controlPointHandler.MouseClick(mouse_pos[0], mouse_pos[1], dot_select)
+        
+        screen.fill(Colors.WHITE)
 
-    
-    screen.fill(Colors.WHITE)
-
-    jointCurveHandler.Draw(pygame, screen, 2, [Colors.RED, Colors.GREEN], 300)
+        jointCurveHandler.Draw(pygame, screen, 2, [nurbsColor, hermiteColor], total_points)
 
     # update the screen
     pygame.display.update()

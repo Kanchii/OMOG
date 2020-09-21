@@ -11,8 +11,6 @@ class ControlPointHandler:
     
     def draw(self, pygame, screen):
         for control_point in self.control_points:
-            if(control_point.terminal):
-                continue
             control_point.draw(pygame, screen)
     
     def getValue(self, idx):
@@ -27,16 +25,13 @@ class ControlPointHandler:
 
     def MouseClick(self, x, y, idx):
         self.control_points[idx].pos = Point(x, y)
-        # if(self.selected == -1):
-        #     for idx, control_point in enumerate(self.control_points):
-        #         if(control_point.IsPressed(x, y)):
-        #             self.selected = idx
-        #             break
-        # else:
-        #     if(not self.control_points[self.selected].IsPressed(x, y)):
-        #         self.selected = -1
-        #         return
-        #     self.control_points[self.selected].pos = Point(x, y)
+    
+    def DotSelected(self, idx):
+        for control_point in self.control_points:
+            control_point.ResetColor()
+        if(idx != None):
+            self.control_points[idx].radius *= 2
+            self.control_points[idx].color = Colors.PURPLE
             
 
 class ControlPoint:
@@ -46,14 +41,23 @@ class ControlPoint:
         self.terminal = terminal
         self.weight = weight
         self.color = color
+        self.real_color = color
 
         self.radius = radius
+        self.real_radius = radius
 
     def draw(self, pygame, screen):
-        self.pos.draw(pygame, screen, self.radius, self.color if not self.terminal else Colors.RED)
+        self.pos.draw(pygame, screen, self.radius, self.color)
     
     def __str__(self):
         return self.pos.__str__()
+
+    def SetColor(self, color):
+        self.color = color
+    
+    def ResetColor(self):
+        self.color = self.real_color
+        self.radius = self.real_radius
 
     def IsPressed(self, x, y):
         if(sqrt((x - self.pos.x) ** 2 + (y - self.pos.y) ** 2) <= self.radius):

@@ -107,9 +107,9 @@ class HermiteCurve:
 
     def GenerateCurve(self, number_points):
         self.p_start = self.controlPointHandler.getValue(0)
-        self.v_start = self.controlPointHandler.getValue(1).vet(self.p_start)
+        self.v_start = self.p_start.vet(self.controlPointHandler.getValue(1))
         self.p_end = self.controlPointHandler.getValue(2)
-        self.v_end = self.controlPointHandler.getValue(3).vet(self.p_end)
+        self.v_end = self.p_end.vet(self.controlPointHandler.getValue(3))
 
         self.points = PointCollection([])
         self.BuildCurve(number_points)
